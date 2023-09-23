@@ -67,18 +67,6 @@ std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& lhs, const std::s
     return (*lhs) + rhs;
 }
 
-std::shared_ptr<Value> Value::operator-(const std::shared_ptr<Value>& other) {
-
-    auto _prev = std::unordered_set<std::shared_ptr<Value>>{shared_from_this(), other};
-    auto out = std::make_shared<Value>(data - other -> data, _prev, "-");
-
-    out -> _backward = [this, out, other] {
-        this -> grad += 1.0 * out -> grad;
-        other -> grad += 1.0 * out -> grad;
-    };
-
-    return out;
-};
 
 std::shared_ptr<Value> Value::operator*(const std::shared_ptr<Value>& other) {
 
@@ -97,11 +85,32 @@ std::shared_ptr<Value> operator*(const std::shared_ptr<Value>& lhs, const std::s
     return (*lhs) * rhs;
 }
 
+std::shared_ptr<Value> Value::operator-(const std::shared_ptr<Value>& other) {
+
+    auto _prev = std::unordered_set<std::shared_ptr<Value>>{shared_from_this(), other};
+    auto out = std::make_shared<Value>(data - other -> data, _prev, "-");
+
+    out -> _backward = [this, out, other] {
+        this -> grad += 1.0 * out -> grad;
+        other -> grad += 1.0 * out -> grad;
+    };
+
+    return out;
+};
+
 std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs) {
     return (*lhs) - rhs;
 }
 
 std::shared_ptr<Value> Value::operator-() {
     return shared_from_this() * std::make_shared<Value>(-1);
+}
+
+std::shared_ptr<Value> Value::operator/(const std::shared_ptr<Value>& other) {
+    return *this * std::make_shared<Value>(1.0 / other -> data);
+}
+
+std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs) {
+    return (*lhs) / rhs;
 }
 

@@ -5,9 +5,12 @@ main: engine.o main.o
 	clang++ $(CFLAGS) main.o engine.o -o main
 	./main
 
-test: engine.o ./test/test.cpp
-	clang++ $(CFLAGS) -lgtest engine.o ./test/test.cpp -o testing
+test: engine.o  test.o
+	clang++ $(CFLAGS) -lgtest test.o engine.o -o testing
 	./testing
+
+test.o: ./test/test.cpp
+	clang++ $(CFLAGS) -c -lgtest ./test/test.cpp
 
 main.o: ./test/main.cpp
 	clang++ $(CFLAGS) -c ./test/main.cpp
