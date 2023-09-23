@@ -6,40 +6,35 @@
 #include <memory>
 #include <functional>
 
-struct Value : std::enable_shared_from_this<Value> {
-    private:
-        float data;
-        float grad;
-        std::function<void()> _backward;
-        std::unordered_set<std::shared_ptr<Value> > _prev; 
-        std::string op;
+class Value : public std::enable_shared_from_this<Value> {
+private:
+    float data;
+    float grad;
+    std::function<void()> _backward;
+    std::unordered_set<std::shared_ptr<Value>> prev;
+    std::string op;
 
-    Value(float data, std::unordered_set<std::shared_ptr<Value> > prev, std::string op);
+public:
+    Value(float data, std::unordered_set<std::shared_ptr<Value>> prev = {}, std::string op = "");
+
+    void set_grad(float grad_value);
+    float get_data();
+    void set_data(float data);
+    float get_grad() const;
+    void print() const;
+    std::unordered_set<std::shared_ptr<Value>>  get_prev() const;
+
+    std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> operator-();
+    std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> pow(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> operator*(const std::shared_ptr<Value>& other);
 
     void backward();
-    
-    void set_grad(float grad_val);
-    void set_data(float data_val);
-    float get_data();
-    float get_grad();
+};
 
-    // defining operations
-    std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& other);
-    std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& other);
-
-    //negative sign
-    std::shared_ptr<Value> operator-();
-
-    std::shared_ptr<Value> operator*(const std::shared_ptr<Value>& other);
-    std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& other);
-
-    std::shared_ptr<Value> pow(const std::shared_ptr<Value>& other);
+//define operations between two value pointers 
+std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
 
 #endif
-
-
-
-
-
-
-};

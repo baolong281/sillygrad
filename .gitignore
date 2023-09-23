@@ -1,4 +1,5 @@
 main
+testing
 *.o
 .DS_Store
 .vscode/
