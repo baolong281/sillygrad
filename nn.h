@@ -18,7 +18,7 @@ class Neuron {
         Neuron(int nin, std::string activation="");
         std::shared_ptr<Value> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
-        
+        void zero_grad();
 };
 
 class Layer {
@@ -29,6 +29,7 @@ class Layer {
         Layer(int nin, int nout, std::string activation);
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
+        void zero_grad();
 };
 
 class MLP {
@@ -38,6 +39,7 @@ class MLP {
         MLP(std::vector<int> sizes, std::string activation);
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
+        void zero_grad();
 };
 
 std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x);

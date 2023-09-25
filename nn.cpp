@@ -110,3 +110,22 @@ std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>&
     }
     return out;
 }
+
+void Neuron::zero_grad() {
+    for(auto& weight: w) {
+        weight -> set_grad(0);
+    }
+    b -> set_grad(0);
+}
+
+void Layer::zero_grad() {
+    for(auto& neuron: neurons) {
+        neuron.zero_grad();
+    }
+}
+
+void MLP::zero_grad() {
+    for(auto& layer: layers) {
+        layer.zero_grad();
+    }
+}
