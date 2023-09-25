@@ -22,7 +22,7 @@ public:
     void set_data(float data);
     float get_grad() const;
     void print() const;
-    std::unordered_set<std::shared_ptr<Value>>  get_prev() const;
+    std::unordered_set<std::shared_ptr<Value>> get_prev() const;
 
     std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& other);
     std::shared_ptr<Value> operator-();
@@ -30,6 +30,10 @@ public:
     std::shared_ptr<Value> pow(const std::shared_ptr<Value>& other);
     std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& other);
     std::shared_ptr<Value> operator*(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> log(const std::shared_ptr<Value>& other);
+    std::shared_ptr<Value> log();
+    std::shared_ptr<Value> relu();
+    std::shared_ptr<Value> leaky_relu();
 
     void backward();
 };
@@ -39,5 +43,9 @@ std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& lhs, const std::s
 std::shared_ptr<Value> operator*(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
 std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
 std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
+std::shared_ptr<Value> pow(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs);
+std::shared_ptr<Value> log(const std::shared_ptr<Value>& lhs);
+std::shared_ptr<Value> relu(const std::shared_ptr<Value>& lhs);
+std::shared_ptr<Value> leaky_relu(const std::shared_ptr<Value>& lhs);
 
 #endif

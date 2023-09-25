@@ -3,6 +3,8 @@
 #include <memory>
 #include <functional>
 #include <iostream>
+#include <cmath>
+#include <vector>
 #include "engine.h"
 
 Value::Value(float data, std::unordered_set<std::shared_ptr<Value> > prev, std::string op) {
@@ -75,7 +77,7 @@ std::shared_ptr<Value> Value::operator*(const std::shared_ptr<Value>& other) {
 
     out -> _backward = [this, out, other] {
         this -> grad += this -> data * out -> grad;
-        other -> grad += other -> data *  out -> grad;
+        other -> grad += other -> data * out -> grad;
     };
 
     return out;
@@ -114,3 +116,95 @@ std::shared_ptr<Value> operator/(const std::shared_ptr<Value>& lhs, const std::s
     return (*lhs) / rhs;
 }
 
+std::shared_ptr<Value> Value::pow(const std::shared_ptr<Value>& other) {
+    auto _prev = std::unordered_set<std::shared_ptr<Value>>{shared_from_this(), other};
+    auto out = std::make_shared<Value>(std::pow(data, other -> data), _prev, "pow");
+
+    out -> _backward = [this, out, other] {
+        this -> grad += other -> data * std::pow(this -> data, other -> data - 1) * out -> grad;
+        other -> grad += std::pow(this -> data, other -> data) * std::log(this -> data) * out -> grad;
+    };
+
+    return out;
+}
+
+std::unordered_set<std::shared_ptr<Value>> Value::get_prev() const {
+    return this -> prev;
+}
+
+void build_topo(std::shared_ptr<Value> v, std::unordered_set<std::shared_ptr<Value>>& visited, std::vector<std::shared_ptr<Value>>& topo) {
+   if(visited.find(v) == visited.end()) {
+        visited.insert(v);
+        for(const auto& child : v -> get_prev()) {
+            build_topo(child, visited, topo);
+        }
+        topo.push_back(v);
+   }
+}
+
+void Value::backward() {
+    auto topo = std::vector<std::shared_ptr<Value>>{};
+    auto visited = std::unordered_set<std::shared_ptr<Value>>{};
+
+    build_topo(shared_from_this(), visited, topo);
+
+    this -> grad = 1.0;
+    
+    for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
+        const auto& v = *it;
+        v->_backward();
+    }
+}
+
+
+std::shared_ptr<Value> Value::log() {
+    auto out = std::make_shared<Value>(std::log(data), std::unordered_set<std::shared_ptr<Value>>{shared_from_this()}, "log");
+
+    auto ln10 = 2.30258509299;
+
+    out -> _backward = [this, out, ln10] {
+        this -> grad += 1.0 / (this -> data * ln10) * out -> grad;
+    };
+
+    return out;
+}
+
+std::shared_ptr<Value> log(const std::shared_ptr<Value>& lhs) {
+    return lhs -> log();
+}
+
+std::shared_ptr<Value> Value::relu() {
+    auto new_data = std::max(0.0f, data);
+
+    auto out = std::make_shared<Value>(new_data, std::unordered_set<std::shared_ptr<Value>>{shared_from_this()}, "relu");
+
+    out -> _backward = [this, out] {
+        this -> grad += (this -> data > 0) * out -> grad;
+    };
+
+    return out;
+}
+
+std::shared_ptr<Value> relu(const std::shared_ptr<Value>& lhs) {
+    return lhs -> relu();
+}
+
+std::shared_ptr<Value> Value::leaky_relu() {
+    auto c = .01;
+    auto new_data = std::max((float)c*data, data);
+    auto out = std::make_shared<Value>(new_data, std::unordered_set<std::shared_ptr<Value>>{shared_from_this()}, "relu");
+
+    out -> _backward = [this, out, c] {
+        if(this -> data > 0) {
+            this -> grad += 1 * out -> grad;
+        } else {
+            this -> grad += 1 * out -> grad * c;
+        }
+    };
+
+    return out;
+}
+
+std::shared_ptr<Value> leaky_relu(const std::shared_ptr<Value>& lhs) {
+    return lhs -> leaky_relu();
+}

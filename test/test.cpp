@@ -46,6 +46,28 @@ TEST(Division, DivisionCorrect2) {
     EXPECT_EQ(-2, c -> get_data());
 }
 
+
+
+TEST(Grad, Gradient1) {
+    auto a = std::make_shared<Value>(6);
+    auto b = std::make_shared<Value>(-3);
+    auto c = a / b;
+    c -> backward();
+    EXPECT_EQ(c -> get_grad(), 1);
+    EXPECT_EQ(b -> get_grad(), 1/-3);
+    EXPECT_EQ(a -> get_grad(), 6);
+}
+
+TEST(Grad, Gradient2) {
+    auto a = std::make_shared<Value>(6);
+    auto b = std::make_shared<Value>(-3);
+    auto c = a / b;
+    c -> backward();
+    EXPECT_EQ(c -> get_grad(), 1);
+    EXPECT_EQ(b -> get_grad(), 1/-3);
+    EXPECT_EQ(a -> get_grad(), 6);
+}
+
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
