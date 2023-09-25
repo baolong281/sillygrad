@@ -208,3 +208,17 @@ std::shared_ptr<Value> Value::leaky_relu() {
 std::shared_ptr<Value> leaky_relu(const std::shared_ptr<Value>& lhs) {
     return lhs -> leaky_relu();
 }
+
+std::shared_ptr<Value> Value::exp() {
+    auto out = std::make_shared<Value>(std::exp(data), std::unordered_set<std::shared_ptr<Value>>{shared_from_this()}, "exp");
+
+    this -> _backward = [this, out] {
+        this -> grad += out -> data * out -> grad;
+    };
+
+    return out;
+}
+
+std::shared_ptr<Value> exp(const std::shared_ptr<Value>& lhs) {
+    return lhs -> exp();
+}

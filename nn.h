@@ -40,4 +40,6 @@ class MLP {
         std::vector<std::shared_ptr<Value>> parameters();
 };
 
+std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x);
+
 #endif

@@ -99,4 +99,14 @@ std::vector<std::shared_ptr<Value>> MLP::parameters() {
     return params;
 }
 
-
+std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x) {
+    auto out = std::vector<std::shared_ptr<Value>>{};
+    auto denom = std::make_shared<Value>(0);
+    for(auto& val: x) {
+        denom = denom + exp(val);
+    }
+    for(auto& val: x) {
+        out.push_back(exp(val) / denom);
+    }
+    return out;
+}

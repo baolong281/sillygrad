@@ -47,7 +47,11 @@ TEST(Division, DivisionCorrect2) {
     EXPECT_EQ(-2, c -> get_data());
 }
 
-
+TEST(Exponent, ExponentCorrect) {
+    auto a = std::make_shared<Value>(6);
+    auto c = exp(a);
+    EXPECT_FLOAT_EQ(c -> get_data(), std::exp(6));
+}
 
 TEST(Grad, Gradient1) {
     auto a = std::make_shared<Value>(6);
@@ -105,6 +109,15 @@ TEST(MLP, Init1) {
     EXPECT_EQ(y.size(), 4);
 }
 
+TEST(Softmax, SoftmaxSum) {
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2), std::make_shared<Value>(3)};
+    auto y = softmax(x);
+    float sum = 0;
+    for(auto& val: y) {
+        sum += val -> get_data();
+    }
+    EXPECT_FLOAT_EQ(sum, 1);
+}
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);

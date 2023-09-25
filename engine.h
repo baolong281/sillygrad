@@ -34,6 +34,7 @@ public:
     std::shared_ptr<Value> log();
     std::shared_ptr<Value> relu();
     std::shared_ptr<Value> leaky_relu();
+    std::shared_ptr<Value> exp();
 
     void backward();
 };
@@ -47,5 +48,6 @@ std::shared_ptr<Value> pow(const std::shared_ptr<Value>& lhs, const std::shared_
 std::shared_ptr<Value> log(const std::shared_ptr<Value>& lhs);
 std::shared_ptr<Value> relu(const std::shared_ptr<Value>& lhs);
 std::shared_ptr<Value> leaky_relu(const std::shared_ptr<Value>& lhs);
+std::shared_ptr<Value> exp(const std::shared_ptr<Value>& lhs);
 
 #endif
