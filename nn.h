@@ -15,8 +15,29 @@ class Neuron {
         std::shared_ptr<Value> b;
 
     public:
-        Neuron(int nin, bool activation);
+        Neuron(int nin, std::string activation="");
         std::shared_ptr<Value> operator()(std::vector<std::shared_ptr<Value>>& x);
+        std::vector<std::shared_ptr<Value>> parameters();
+        
+};
+
+class Layer {
+    private:
+        std::vector<Neuron> neurons;
+        std::string _activation;
+    public:
+        Layer(int nin, int nout, std::string activation);
+        std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
+        std::vector<std::shared_ptr<Value>> parameters();
+};
+
+class MLP {
+    private:
+        std::vector<Layer> layers;
+    public:
+        MLP(std::vector<int> sizes, std::string activation);
+        std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
+        std::vector<std::shared_ptr<Value>> parameters();
 };
 
 #endif

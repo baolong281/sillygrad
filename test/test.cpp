@@ -70,12 +70,41 @@ TEST(Grad, Gradient2) {
 }
 
 TEST(Neuron, Neuron1) {
-    auto n = Neuron(2, false);
+    auto n = Neuron(2, "relu");
     auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2)};
     auto y = n(x);
-    y -> print();
     EXPECT_EQ(0, 0);
 }
+
+TEST(Neuron, GetParams) {
+    auto n = Neuron(5, "relu");
+    EXPECT_EQ(n.parameters().size(), 6);
+}
+
+TEST(Layer, Parameters) {
+    auto layer = Layer(2, 3, "relu");
+    EXPECT_EQ(layer.parameters().size(), 9);
+}
+
+TEST(Layer, Init1) {
+    auto layer = Layer(4, 5, "relu");
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2), std::make_shared<Value>(3), std::make_shared<Value>(4)};
+    auto y = layer(x);
+    EXPECT_EQ(y.size(), 5);
+}
+
+TEST(MLP, Parameters) {
+    auto network = MLP({2, 3, 4}, "relu");
+    EXPECT_EQ(network.parameters().size(), 25);
+}
+
+TEST(MLP, Init1) {
+    auto network = MLP({2, 3, 4}, "relu");
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2)};
+    auto y = network(x);
+    EXPECT_EQ(y.size(), 4);
+}
+
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);
