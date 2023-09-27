@@ -9,6 +9,12 @@ test: engine.o test.o nn.o
 	clang++ $(CFLAGS) -lgtest nn.o test.o engine.o -o testing
 	./testing
 
+mnist: engine.o nn.o mnist.o
+	clang++ $(CFLAGS) nn.o engine.o mnist.o -o mnist
+
+mnist.o: mnist.cpp
+	clang++ $(CFLAGS) -c mnist.cpp
+
 test.o: ./test/test.cpp
 	clang++ $(CFLAGS) -c -lgtest ./test/test.cpp
 

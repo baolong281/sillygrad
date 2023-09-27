@@ -40,6 +40,7 @@ class MLP {
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
+        void step(float lr);
 };
 
 std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x);

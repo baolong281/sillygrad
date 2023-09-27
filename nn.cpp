@@ -129,3 +129,9 @@ void MLP::zero_grad() {
         layer.zero_grad();
     }
 }
+
+void MLP::step(float lr) {
+    for(auto& val: this -> parameters()) {
+        val -> set_data(val -> get_data() - lr * val -> get_grad());
+    }
+}

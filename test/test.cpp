@@ -119,6 +119,35 @@ TEST(Softmax, SoftmaxSum) {
     EXPECT_FLOAT_EQ(sum, 1);
 }
 
+TEST(Step, ChangeData) {
+    auto network = MLP({2, 3, 4}, "relu");
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2)};
+    auto params = network.parameters();
+    for(auto& val: params) {
+        val -> set_data(1);
+        val -> set_grad(1);
+    }
+    network.step(0.1);
+    for(auto& val: params) {
+        EXPECT_FLOAT_EQ(val -> get_data(), 0.9);
+    }
+}
+
+TEST(Step, CorrectGrad) {
+    auto network = MLP({2, 3, 4}, "relu");
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(1), std::make_shared<Value>(2)};
+    auto params = network.parameters();
+    for(auto& val: params) {
+        val -> set_data(1);
+        val -> set_grad(0.5);
+    }
+    network.step(0.1);
+    for(auto& val: params) {
+        EXPECT_FLOAT_EQ(val -> get_data(), 0.95);
+    }
+}
+
+
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
