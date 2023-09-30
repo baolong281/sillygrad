@@ -12,9 +12,14 @@
 #include <fstream>
 
 namespace fs = std::filesystem;
+typedef unsigned char uchar;
 
 static std::string train_imgs_url = "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz";
-static std::string trai_labels_url = "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz";
+static std::string train_labels_url = "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz";
+static std::string data_out_path = "data/train-ubyte.gz";
+static std::string labels_out_path = "data/train-labels-ubyte.gz";
+static std::string data_path = "data/train-ubyte";
+static std::string label_path = "data/train-labels-ubyte";
 
 inline bool file_exists(const std::string& name) {
     if (FILE *file = fopen(name.c_str(), "r")) {
@@ -49,34 +54,32 @@ void download_and_unzip(const std::string& url, const std::string &out_path) {
     }
 
     if (curl) {
-        std::cout << "Downloading MNIST data from " << train_imgs_url << std::endl;
+        std::cout << "Downloading MNIST data from " << url << " into " << out_path << std::endl;
         fp = fopen(out_path.c_str(),"wb");
-        curl_easy_setopt(curl, CURLOPT_URL, train_imgs_url.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         res = curl_easy_perform(curl);
 
         if(res != CURLE_OK) {
-            std::cout << "Failed to download MNIST data" << std::endl;
+            std::cout << "Failed to download " << out_path << std::endl;
         } else {
-            std::cout << "Successfully downloaded MNIST data" << std::endl;
+            std::cout << "Successfully downloaded into " << out_path << std::endl;
         }
 
         /* always cleanup */
         curl_easy_cleanup(curl);
         fclose(fp);
 
-        std::cout << "Decompressing MNIST data" << std::endl;
+        std::cout << "Decompressing " << out_path << std::endl;
         std::string syscall = "gzip -d "+out_path;
         system(syscall.c_str());
     }
 }
 
 void make_data() {
-    std::string data_out_path = "data/train.gz";
-    std:: string labels_out_path = "data/train-labels.gz";
     download_and_unzip(train_imgs_url, data_out_path);
-    download_and_unzip(train_imgs_url, labels_out_path);
+    download_and_unzip(train_labels_url, labels_out_path);
 }
 
 //for use in reading data
@@ -112,7 +115,7 @@ std::shared_ptr<std::vector<std::vector<int>>> read_mnist(std::string full_path)
         n_cols= reverseInt(n_cols);
 
         //pointer to vector that holds all images
-        auto all_images = make_shared<std::vector<std::vector<int>>>(number_of_images, std::vector<int>(n_rows*n_cols));
+        auto all_images = std::make_shared<std::vector<std::vector<int>>>(number_of_images, std::vector<int>(n_rows*n_cols));
         for(int i=0;i<number_of_images;++i)
         {
             std::vector<int> img;
@@ -130,14 +133,38 @@ std::shared_ptr<std::vector<std::vector<int>>> read_mnist(std::string full_path)
         }
         return all_images;
     }
-    return nullptr;
+    throw std::runtime_error("Invalid MNIST image file!");
+}
+
+//return pointer to vector of labels
+std::shared_ptr<std::vector<int>> read_mnist_labels(std::string full_path, int& number_of_labels) {
+    std::ifstream file(full_path, std::ios::binary);
+
+    if(file.is_open()) {
+        int magic_number = 0;
+        file.read((char *)&magic_number, sizeof(magic_number));
+        magic_number = reverseInt(magic_number);
+        if(magic_number != 2049) throw std::runtime_error("Invalid MNIST label file!");
+
+        file.read((char *)&number_of_labels, sizeof(number_of_labels)), number_of_labels = reverseInt(number_of_labels);
+
+        auto labels = std::make_shared<std::vector<int>>(number_of_labels);
+        for(int i = 0; i < number_of_labels; i++) {
+            unsigned char temp = 0;
+            file.read((char *)&temp, sizeof(temp));
+            (*labels)[i] = (int)temp;
+        }
+        return labels;
+    } else {
+        throw std::runtime_error("Unable to open file `" + full_path + "`!");
+    }
 }
 
 int main(int argc, char *argv[]) {
 
     bool cuda = false;
 
-    if(argc > 1 && strcmp("-cuda", argv[1]) == 0) {
+    if(argc > 1 && strcmp("--cuda", argv[1]) == 0) {
         cuda = true;
     }
 
@@ -147,17 +174,10 @@ int main(int argc, char *argv[]) {
         make_data();
     }
 
-    auto images = read_mnist("data/train");
-    auto im1 = (*images)[0];
+    auto images = read_mnist(data_path);
 
-    for(int i = 0; i < 28; i++) {
-        for(int j = 0; j < 28; j++) {
-            std::cout << im1[i*28+j] << " ";
-        }
-        std::cout << std::endl;
-    }
+    int size = images -> size();
 
-    std::cout << images->size() << std::endl;
-
+    auto something = read_mnist_labels(label_path, size);
     return 0;
 }
