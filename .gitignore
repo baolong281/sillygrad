@@ -1,6 +1,4 @@
-main
-testing
-*.o
-.DS_Store
-.vscode/
-*.dSYM
+*
+!*.cpp
+!*.h
+Makefile
