@@ -3,3 +3,4 @@
 !*.h
 !test/*.cpp
 Makefile
+README.md
