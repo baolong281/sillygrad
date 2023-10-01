@@ -45,5 +45,6 @@ class MLP {
 
 std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x);
 std::shared_ptr<Value> cross_entropy(std::vector<std::shared_ptr<Value>>& x, std::vector<std::shared_ptr<Value>>& y);
+std::vector<std::shared_ptr<Value>> layer_norm(std::vector<std::shared_ptr<Value>>& x);
 
 #endif

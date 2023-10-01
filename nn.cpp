@@ -84,10 +84,37 @@ MLP::MLP(std::vector<int> sizes, std::string activation) {
     }
 }
 
+std::vector<std::shared_ptr<Value>> layer_norm(std::vector<std::shared_ptr<Value>>& x) {
+    auto out = std::vector<std::shared_ptr<Value>>{};
+    auto mean = .0f;
+    auto std = 0.f;
+    for(auto& val: x) {
+        mean = mean + val -> get_data();
+    }
+    mean = mean / x.size();
+    auto mean_val = std::make_shared<Value>(mean);
+    for(auto& val: x) {
+        auto ins = val -> get_data() - mean;
+        std = std + pow(ins, 2);
+    }
+    std = sqrt(std / x.size());
+    auto std_val = std::make_shared<Value>(std);
+    for(auto& val: x) {
+        out.push_back((val - mean_val) / std_val);
+    }
+    return out;
+}
+
 std::vector<std::shared_ptr<Value>> MLP::operator()(std::vector<std::shared_ptr<Value>>& x) {
     std::vector<std::shared_ptr<Value>> out = x;
-    for(auto& layer: layers) {
-        out = layer(out);
+
+    for(int i=0; i<layers.size(); i++) {
+        if(i==layers.size()-1) {
+            out = layers[i](out);
+            break;
+        }
+        auto logits = layers[i](out);
+        out = layer_norm(logits);
     }
     return out;
 }

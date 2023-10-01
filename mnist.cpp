@@ -10,6 +10,7 @@
 #include <curl/curl.h>
 #include <filesystem>
 #include <fstream>
+#include <chrono>
 
 namespace fs = std::filesystem;
 typedef unsigned char uchar;
@@ -191,20 +192,40 @@ int main(int argc, char *argv[]) {
     int size = images -> size();
     auto labels = read_mnist_labels(label_path, size);
 
-    MLP model = MLP({784, 512, 512, 10}, "");
-
+    MLP model = MLP({784, 100, 100, 10}, "leaky_relu");
     auto epochs = 1;
+    auto step = 0;
+    auto lr = .05;
 
+    std::cout << "Training..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     while(epochs--) {
-        for(int i = 0; i < 1; i++) {
+        for(int i = 0; i < 40000; i++) {
+            model.zero_grad();
             auto x = convert_to_values((*images)[i]);
-            auto label = (*labels)[i+500]; 
-            auto y = model(x);
-            for (auto& val: y) {
-                val -> print();
+            auto label = (*labels)[i];
+            std::vector<std::shared_ptr<Value>> truth;
+            for(int j = 0; j < 10; j++) {
+                if(j == label) {
+                    truth.push_back(std::make_shared<Value>(1));
+                } else {
+                    truth.push_back(std::make_shared<Value>(0));
+                }
             }
+            auto y = model(x);
+            y = softmax(y);
+            auto loss = cross_entropy(y, truth);
+            loss->backward();
+            model.step(lr);
+            if(step%10==0) {
+                std::cout << "Step: " << step << " Loss: " << loss-> get_data() << std::endl;
+            }
+            step++;
         }
     }
-
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end-start).count();
+    std::cout << "Training took " << duration << " seconds" << std::endl;
+    std::cout << "Done training!" << std::endl;
     return 0;
 }
