@@ -147,6 +147,13 @@ TEST(Step, CorrectGrad) {
     }
 }
 
+TEST(CrossEntropy, CorrectEntropy) {
+    auto x = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(0.1), std::make_shared<Value>(0.2), std::make_shared<Value>(0.7)};
+    auto y = std::vector<std::shared_ptr<Value>>{std::make_shared<Value>(0), std::make_shared<Value>(0), std::make_shared<Value>(1)};
+    auto loss = cross_entropy(x, y);
+    EXPECT_FLOAT_EQ(loss -> get_data(), -std::log(0.7));
+}
+
 
 int main(int argc, char* argv[]){
     testing::InitGoogleTest(&argc, argv);

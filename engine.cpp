@@ -22,7 +22,7 @@ Value::Value(float data, std::unordered_set<std::shared_ptr<Value> > prev, std::
 };
 
 void Value::print() const {
-    std::cout << "grad: " << this -> grad << "\n" << "data: " <<  this -> data;
+    std::cout << "grad: " << this -> grad << " data: " <<  this -> data << std::endl;
 }
 
 float Value::get_data() {
@@ -102,6 +102,10 @@ std::shared_ptr<Value> Value::operator-(const std::shared_ptr<Value>& other) {
 
 std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& lhs, const std::shared_ptr<Value>& rhs) {
     return (*lhs) - rhs;
+}
+
+std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& lhs) {
+    return -(*lhs);
 }
 
 std::shared_ptr<Value> Value::operator-() {

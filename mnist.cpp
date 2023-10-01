@@ -95,12 +95,13 @@ int reverseInt (int i)
     return ((int)c1 << 24) + ((int)c2 << 16) + ((int)c3 << 8) + c4;
 }
 
-//read all images into a vector then return pointer to vector
+//read all images into a vector then return pointer to vector of values
 std::shared_ptr<std::vector<std::vector<int>>> read_mnist(std::string full_path)
 {
     std::ifstream file(full_path, std::ios::binary);
     if (file.is_open())
     {
+        std::cout << "Reading MNIST Data..." << std::endl;
         int magic_number=0;
         int number_of_images=0;
         int n_rows=0;
@@ -115,7 +116,7 @@ std::shared_ptr<std::vector<std::vector<int>>> read_mnist(std::string full_path)
         n_cols= reverseInt(n_cols);
 
         //pointer to vector that holds all images
-        auto all_images = std::make_shared<std::vector<std::vector<int>>>(number_of_images, std::vector<int>(n_rows*n_cols));
+        auto all_images = std::make_shared<std::vector<std::vector<int>>>();
         for(int i=0;i<number_of_images;++i)
         {
             std::vector<int> img;
@@ -129,8 +130,9 @@ std::shared_ptr<std::vector<std::vector<int>>> read_mnist(std::string full_path)
                     img.push_back((int)temp);
                 }
             }
-            (*all_images)[i] = img;
+            all_images -> push_back(img);
         }
+        std::cout << "Done reading MNIST Data!" << std::endl;
         return all_images;
     }
     throw std::runtime_error("Invalid MNIST image file!");
@@ -141,6 +143,7 @@ std::shared_ptr<std::vector<int>> read_mnist_labels(std::string full_path, int& 
     std::ifstream file(full_path, std::ios::binary);
 
     if(file.is_open()) {
+        std::cout << "Reading MNIST Labels..." << std::endl;
         int magic_number = 0;
         file.read((char *)&magic_number, sizeof(magic_number));
         magic_number = reverseInt(magic_number);
@@ -154,10 +157,20 @@ std::shared_ptr<std::vector<int>> read_mnist_labels(std::string full_path, int& 
             file.read((char *)&temp, sizeof(temp));
             (*labels)[i] = (int)temp;
         }
+        std::cout << "Done reading MNIST Labels!" << std::endl;
         return labels;
     } else {
         throw std::runtime_error("Unable to open file `" + full_path + "`!");
     }
+}
+
+std::vector<std::shared_ptr<Value>> convert_to_values(std::vector<int>& arr) {
+    std::vector<std::shared_ptr<Value>> out;
+    out.reserve(arr.size());
+    for(auto& pixel: arr) {
+        out.push_back(std::make_shared<Value>(pixel));
+    }
+    return out;
 }
 
 int main(int argc, char *argv[]) {
@@ -175,9 +188,23 @@ int main(int argc, char *argv[]) {
     }
 
     auto images = read_mnist(data_path);
-
     int size = images -> size();
+    auto labels = read_mnist_labels(label_path, size);
 
-    auto something = read_mnist_labels(label_path, size);
+    MLP model = MLP({784, 512, 512, 10}, "");
+
+    auto epochs = 1;
+
+    while(epochs--) {
+        for(int i = 0; i < 1; i++) {
+            auto x = convert_to_values((*images)[i]);
+            auto label = (*labels)[i+500]; 
+            auto y = model(x);
+            for (auto& val: y) {
+                val -> print();
+            }
+        }
+    }
+
     return 0;
 }

@@ -49,5 +49,6 @@ std::shared_ptr<Value> log(const std::shared_ptr<Value>& lhs);
 std::shared_ptr<Value> relu(const std::shared_ptr<Value>& lhs);
 std::shared_ptr<Value> leaky_relu(const std::shared_ptr<Value>& lhs);
 std::shared_ptr<Value> exp(const std::shared_ptr<Value>& lhs);
+std::shared_ptr<Value> operator-(const std::shared_ptr<Value>& lhs);
 
 #endif

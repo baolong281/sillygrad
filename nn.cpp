@@ -1,4 +1,6 @@
 #include "engine.h"
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <unordered_set>
 #include <memory>
@@ -11,7 +13,7 @@
 
 Neuron::Neuron(int nin, std::string activation) {
     this -> _activation = activation;
-    auto std = sqrt(2/nin);
+    auto std = sqrt(2/(float)nin);
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(-1, 1);
@@ -135,3 +137,12 @@ void MLP::step(float lr) {
         val -> set_data(val -> get_data() - lr * val -> get_grad());
     }
 }
+
+std::shared_ptr<Value> cross_entropy(std::vector<std::shared_ptr<Value>>& x, std::vector<std::shared_ptr<Value>>& y) {
+    auto out = std::make_shared<Value>(0);
+    for(int i = 0; i < x.size(); i++) {
+        out = out + y[i] * log(x[i]);
+    }
+    return -out;
+}
+
