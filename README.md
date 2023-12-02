@@ -4,10 +4,12 @@ torch-like deep learning framework written in c++ and accelerated with cuda base
 [c++ micrograd](https://github.com/10-zin/cpp-micrograd).
 
 ### requirements
+
 - libcurl
 - gzip
 
-### running mnist 
+### running mnist
+
 ```
 make mnist
 ./mnist --cuda
@@ -16,7 +18,11 @@ make mnist
 to build and run mnist with cuda
 
 ### running tests
+
 make sure to have gtest installed
+
 ```
 make test
 ```
+
+https://curl.se/docs/faq.html#Link_errors_when_building_libcur
