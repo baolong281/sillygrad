@@ -12,18 +12,18 @@ class Neuron {
     private:
         std::vector<std::shared_ptr<Value>> w;
         std::shared_ptr<Value> b;
-        std::string _activation;
+        char* _activation;
 		int nin;
 
     public:
-        Neuron(int nin, std::string activation="");
+        Neuron(int nin, char* activation={});
         std::shared_ptr<Value> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
 		Neuron to_cuda();
-		void set_act(std::string);
-		void set_w(std::vector<std::shared_ptr<Value>> w);
-		void set_b(std::shared_ptr<Value> b);
+		void set_act(char** activation);
+		void set_w(std::vector<std::shared_ptr<Value>>* w);
+		void set_b(std::shared_ptr<Value>* b);
 		std::string get_activation();
 		int get_nin();
 };
@@ -31,9 +31,9 @@ class Neuron {
 class Layer {
     private:
         std::vector<Neuron> neurons;
-        std::string _activation;
+        char* _activation;
     public:
-        Layer(int nin, int nout, std::string activation);
+        Layer(int nin, int nout, char* activation);
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
@@ -44,7 +44,7 @@ class MLP {
     private:
         std::vector<Layer> layers;
     public:
-        MLP(std::vector<int> sizes, std::string activation);
+        MLP(std::vector<int> sizes, char* activation);
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();

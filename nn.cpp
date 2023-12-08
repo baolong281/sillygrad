@@ -10,7 +10,7 @@
 #include <random>
 #include "nn.h"
 
-Neuron::Neuron(int nin, std::string activation) {
+Neuron::Neuron(int nin, char* activation) {
     this -> _activation = activation;
 	this -> nin = nin;
     auto std = sqrt(2/(float)nin);
@@ -24,16 +24,16 @@ Neuron::Neuron(int nin, std::string activation) {
     b = std::make_shared<Value>(std * dis(gen));
 }
 
-void Neuron::set_b(std::shared_ptr<Value> b) {
-	this -> b = b;
+void Neuron::set_b(std::shared_ptr<Value>* b) {
+	this -> b = *b;
 }
 
-void Neuron::set_w(std::vector<std::shared_ptr<Value>> w) {
-	this -> w = w;
+void Neuron::set_w(std::vector<std::shared_ptr<Value>>* w) {
+	this -> w = *w;
 }
 
-void Neuron::set_act(std::string activation) {
-	this -> _activation = activation;
+void Neuron::set_act(char** activation) {
+	this -> _activation = *activation;
 }
 
 std::string Neuron::get_activation() {
@@ -69,7 +69,7 @@ std::vector<std::shared_ptr<Value>> Neuron::parameters() {
 }
 
 
-Layer::Layer(int nin, int nout, std::string activation) {
+Layer::Layer(int nin, int nout, char* activation) {
     this -> _activation = activation;
     for(int i = 0; i < nout; i++) {
         this -> neurons.push_back(Neuron(nin, activation));
@@ -95,12 +95,12 @@ std::vector<std::shared_ptr<Value>> Layer::parameters() {
     return params;
 }
 
-MLP::MLP(std::vector<int> sizes, std::string activation) {
+MLP::MLP(std::vector<int> sizes, char* activation) {
     for(int i = 0; i < sizes.size() - 1; i++) {
         if(i!=sizes.size()-2) {
             this -> layers.push_back(Layer(sizes[i], sizes[i+1], activation));
         } else {
-            this -> layers.push_back(Layer(sizes[i], sizes[i+1], ""));
+            this -> layers.push_back(Layer(sizes[i], sizes[i+1], {}));
         }
     }
 }
