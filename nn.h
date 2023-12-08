@@ -10,15 +10,22 @@
 
 class Neuron {
     private:
-        std::string _activation;
         std::vector<std::shared_ptr<Value>> w;
         std::shared_ptr<Value> b;
+        std::string _activation;
+		int nin;
 
     public:
         Neuron(int nin, std::string activation="");
         std::shared_ptr<Value> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
+		Neuron to_cuda();
+		void set_act(std::string);
+		void set_w(std::vector<std::shared_ptr<Value>> w);
+		void set_b(std::shared_ptr<Value> b);
+		std::string get_activation();
+		int get_nin();
 };
 
 class Layer {
@@ -30,6 +37,7 @@ class Layer {
         std::vector<std::shared_ptr<Value>> operator()(std::vector<std::shared_ptr<Value>>& x);
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
+		Layer to_cuda();
 };
 
 class MLP {
@@ -41,6 +49,7 @@ class MLP {
         std::vector<std::shared_ptr<Value>> parameters();
         void zero_grad();
         void step(float lr);
+		MLP to_cuda();
 };
 
 std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x);

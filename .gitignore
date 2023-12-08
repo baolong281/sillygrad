@@ -4,3 +4,4 @@
 !test/*.cpp
 Makefile
 !README.md
+callgrind

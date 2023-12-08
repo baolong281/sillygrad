@@ -1,5 +1,6 @@
 CC=g++
 CFLAGS=-g -std=c++17
+NVCC=nvcc
 
 ifeq ($(OS),Windows_NT)
     CFLAGS += -DCURL_STATICLIB -IC:\msys64\curl\include\curl -LC:\msys64\curl\lib\libcurl.dll.a -lcurl
@@ -9,6 +10,10 @@ endif
 
 main: engine.o main.o nn.o
 	$(CC) $(CFLAGS) nn.o main.o engine.o -o main 
+	./main
+
+cuda: nn.cu engine.o nn.o
+	$(NVCC) -std=c++17 engine.o nn.o nn.cu -o main
 	./main
 
 test: engine.o test.o nn.o

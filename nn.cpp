@@ -10,17 +10,38 @@
 #include <random>
 #include "nn.h"
 
-
 Neuron::Neuron(int nin, std::string activation) {
     this -> _activation = activation;
+	this -> nin = nin;
     auto std = sqrt(2/(float)nin);
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(-1, 1);
+	w.reserve(nin);
     for(int i = 0; i < nin; i++) {
-        this -> w.push_back(std::make_shared<Value>(std * dis(gen)));
+        w.push_back(std::make_shared<Value>(std * dis(gen)));
     }
-    this -> b = std::make_shared<Value>(std * dis(gen));
+    b = std::make_shared<Value>(std * dis(gen));
+}
+
+void Neuron::set_b(std::shared_ptr<Value> b) {
+	this -> b = b;
+}
+
+void Neuron::set_w(std::vector<std::shared_ptr<Value>> w) {
+	this -> w = w;
+}
+
+void Neuron::set_act(std::string activation) {
+	this -> _activation = activation;
+}
+
+std::string Neuron::get_activation() {
+	return this -> _activation;
+}
+
+int Neuron::get_nin() {
+	return this -> nin;
 }
 
 std::shared_ptr<Value> Neuron::operator()(std::vector<std::shared_ptr<Value>>& x) {

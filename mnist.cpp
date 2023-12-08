@@ -1,8 +1,6 @@
 #include <cstring>
 #include <string>
-#include <unordered_set>
 #include <memory>
-#include <functional>
 #include <vector>
 #include <iostream>
 #include "engine.h"
@@ -11,7 +9,6 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
-
 namespace fs = std::filesystem;
 typedef unsigned char uchar;
 
@@ -174,13 +171,61 @@ std::vector<std::shared_ptr<Value>> convert_to_values(std::vector<int>& arr) {
     return out;
 }
 
+int get_prediction(std::vector<std::shared_ptr<Value>> values) {
+	auto max_index = 0;
+	auto max_val = values[0] ->get_data();
+	for(int i=0; i<values.size(); i++) {
+		if(values[i]->get_data() > max_val) {
+			max_index = i;
+			max_val = values[i]->get_data();
+		}
+	}
+	return max_index;
+}
+
+std::tuple<std::shared_ptr<Value>, std::vector<std::shared_ptr<Value>>> training_step(MLP& model, std::vector<std::shared_ptr<Value>>& x, int label) {
+	model.zero_grad();
+	std::vector<std::shared_ptr<Value>> truth;
+	for(int i = 0; i < 10; i++) {
+		if(i == label) {
+			truth.push_back(std::make_shared<Value>(1));
+		} else {
+			truth.push_back(std::make_shared<Value>(0));
+		}
+	}
+	auto y = model(x);
+	y = softmax(y);
+	auto loss = cross_entropy(y, truth);
+	loss->backward();
+	return {loss, y};
+}
+
 int main(int argc, char *argv[]) {
 
     bool cuda = false;
+	int steps = 50;
+	int epochs = 1;
+	int hidden_size = 100;
 
-    if(argc > 1 && strcmp("--cuda", argv[1]) == 0) {
-        cuda = true;
-    }
+	for(int i=1; i<argc; ++i) {
+		if(strcmp("--steps", argv[i])==0) {
+			steps = atoi(argv[i+1]);	
+		}
+		else if(strcmp("--epochs", argv[i])==0) {
+			epochs = atoi(argv[i+1]);
+		}
+		else if(strcmp("--hidden_size", argv[i])==0) {
+			hidden_size = atoi(argv[i+1]);
+		}
+		else if(strcmp("--cuda", argv[1]) == 0) {
+			cuda = true;
+		}
+	}
+
+	std::cout << "Steps: " << steps << std::endl;
+	std::cout << "Epochs: " << epochs << std::endl;
+	std::cout << "Hidden Size: " << hidden_size << std::endl;
+	std::cout << "CUDA: " << cuda << std::endl;
 
     std::string path = "data/";
     
@@ -192,34 +237,21 @@ int main(int argc, char *argv[]) {
     int size = images -> size();
     auto labels = read_mnist_labels(label_path, size);
 
-    MLP model = MLP({784, 100, 100, 10}, "leaky_relu");
-    auto epochs = 1;
+    MLP model = MLP({784, hidden_size, hidden_size, 10}, "leaky_relu");
     auto step = 0;
     auto lr = .05;
 
     std::cout << "Training..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
+	int correct = 0;
     while(epochs--) {
-        for(int i = 0; i < 40000; i++) {
-            model.zero_grad();
+        for(int i = 0; i < steps; i++) {
             auto x = convert_to_values((*images)[i]);
-            auto label = (*labels)[i];
-            std::vector<std::shared_ptr<Value>> truth;
-            for(int j = 0; j < 10; j++) {
-                if(j == label) {
-                    truth.push_back(std::make_shared<Value>(1));
-                } else {
-                    truth.push_back(std::make_shared<Value>(0));
-                }
-            }
-            auto y = model(x);
-            y = softmax(y);
-            auto loss = cross_entropy(y, truth);
-            loss->backward();
-            model.step(lr);
-            if(step%10==0) {
-                std::cout << "Step: " << step << " Loss: " << loss-> get_data() << std::endl;
-            }
+			auto label = (*labels)[i];
+			auto [loss, y] = training_step(model, x, label);
+			if(get_prediction(y) == label) correct++;
+			std:: cout << "Accuracy: " << (float)correct/(i+1) << std::endl;
+			std::cout << "Step: " << step << " Loss: " << loss-> get_data() << std::endl;
             step++;
         }
     }

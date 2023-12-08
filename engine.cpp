@@ -149,6 +149,7 @@ void build_topo(std::shared_ptr<Value> v, std::unordered_set<std::shared_ptr<Val
 void Value::backward() {
     auto topo = std::vector<std::shared_ptr<Value>>{};
     auto visited = std::unordered_set<std::shared_ptr<Value>>{};
+	topo.reserve(4000);
 
     build_topo(shared_from_this(), visited, topo);
 
