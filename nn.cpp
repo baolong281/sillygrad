@@ -10,33 +10,36 @@
 #include <random>
 #include "nn.h"
 
-Neuron::Neuron(int nin, char* activation) {
+using namespace std;
+
+Neuron::Neuron(int nin, string activation) {
     this -> _activation = activation;
 	this -> nin = nin;
     auto std = sqrt(2/(float)nin);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(-1, 1);
-	w.reserve(nin);
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(-1, 1);
+	shared_ptr<Value> weights[nin];
+	w = shared_ptr<shared_ptr<Value>[]>(weights);
     for(int i = 0; i < nin; i++) {
-        w.push_back(std::make_shared<Value>(std * dis(gen)));
+		w.get()[i] = make_shared<Value>(std * dis(gen));
     }
-    b = std::make_shared<Value>(std * dis(gen));
+    b = make_shared<Value>(std * dis(gen));
 }
 
-void Neuron::set_b(std::shared_ptr<Value>* b) {
+void Neuron::set_b(shared_ptr<Value>* b) {
 	this -> b = *b;
 }
 
-void Neuron::set_w(std::vector<std::shared_ptr<Value>>* w) {
-	this -> w = *w;
+void Neuron::set_w(shared_ptr<shared_ptr<Value>[]> new_w) {
+	this -> w = new_w;
 }
 
-void Neuron::set_act(char** activation) {
+void Neuron::set_act(string* activation) {
 	this -> _activation = *activation;
 }
 
-std::string Neuron::get_activation() {
+string Neuron::get_activation() {
 	return this -> _activation;
 }
 
@@ -44,10 +47,10 @@ int Neuron::get_nin() {
 	return this -> nin;
 }
 
-std::shared_ptr<Value> Neuron::operator()(std::vector<std::shared_ptr<Value>>& x) {
-    auto act = std::make_shared<Value>(0);
+shared_ptr<Value> Neuron::operator()(std::vector<std::shared_ptr<Value>>& x) {
+    auto act = make_shared<Value>(0);
     for(int i = 0; i < x.size(); i++) {
-        act = act + x[i] * this -> w[i];
+        act = act + x[i] * w.get()[i];
     }
     if(this -> _activation=="relu") {
         return relu(act + this -> b);
@@ -58,13 +61,13 @@ std::shared_ptr<Value> Neuron::operator()(std::vector<std::shared_ptr<Value>>& x
     }
 }
 
-std::vector<std::shared_ptr<Value>> Neuron::parameters() {
-    auto params = std::vector<std::shared_ptr<Value>>{};
-    params.reserve(this -> w.size() + 1);
+vector<std::shared_ptr<Value>> Neuron::parameters() {
+    auto params = vector<std::shared_ptr<Value>>{};
+    params.reserve(nin + 1);
     params.push_back(b);
-    for(auto& weight: w) {
-        params.push_back(weight);
-    }
+	for(int i=0 ; i<nin ; i++) {
+		params.push_back(w.get()[i]);
+	}
     return params;
 }
 
@@ -76,8 +79,8 @@ Layer::Layer(int nin, int nout, char* activation) {
     }
 }
 
-std::vector<std::shared_ptr<Value>> Layer::operator()(std::vector<std::shared_ptr<Value>>& x) {
-    std::vector<std::shared_ptr<Value>> out;
+vector<std::shared_ptr<Value>> Layer::operator()(std::vector<std::shared_ptr<Value>>& x) {
+    vector<std::shared_ptr<Value>> out;
     out.reserve(neurons.size()+1);
     for (auto& neuron: neurons){
         out.emplace_back(neuron(x));
@@ -85,8 +88,8 @@ std::vector<std::shared_ptr<Value>> Layer::operator()(std::vector<std::shared_pt
     return out;
 }
 
-std::vector<std::shared_ptr<Value>> Layer::parameters() {
-    auto params = std::vector<std::shared_ptr<Value>>{};
+vector<std::shared_ptr<Value>> Layer::parameters() {
+    auto params = vector<std::shared_ptr<Value>>{};
     params.reserve(neurons.size() * (neurons[0].parameters().size()));
     for(auto& neuron: neurons) {
         auto neuron_params = neuron.parameters();
@@ -95,7 +98,7 @@ std::vector<std::shared_ptr<Value>> Layer::parameters() {
     return params;
 }
 
-MLP::MLP(std::vector<int> sizes, char* activation) {
+MLP::MLP(vector<int> sizes, char* activation) {
     for(int i = 0; i < sizes.size() - 1; i++) {
         if(i!=sizes.size()-2) {
             this -> layers.push_back(Layer(sizes[i], sizes[i+1], activation));
@@ -105,29 +108,29 @@ MLP::MLP(std::vector<int> sizes, char* activation) {
     }
 }
 
-std::vector<std::shared_ptr<Value>> layer_norm(std::vector<std::shared_ptr<Value>>& x) {
-    auto out = std::vector<std::shared_ptr<Value>>{};
+vector<std::shared_ptr<Value>> layer_norm(std::vector<std::shared_ptr<Value>>& x) {
+    auto out = vector<std::shared_ptr<Value>>{};
     auto mean = .0f;
     auto std = 0.f;
     for(auto& val: x) {
         mean = mean + val -> get_data();
     }
     mean = mean / x.size();
-    auto mean_val = std::make_shared<Value>(mean);
+    auto mean_val = make_shared<Value>(mean);
     for(auto& val: x) {
         auto ins = val -> get_data() - mean;
         std = std + pow(ins, 2);
     }
     std = sqrt(std / x.size());
-    auto std_val = std::make_shared<Value>(std);
+    auto std_val = make_shared<Value>(std);
     for(auto& val: x) {
         out.push_back((val - mean_val) / std_val);
     }
     return out;
 }
 
-std::vector<std::shared_ptr<Value>> MLP::operator()(std::vector<std::shared_ptr<Value>>& x) {
-    std::vector<std::shared_ptr<Value>> out = x;
+vector<std::shared_ptr<Value>> MLP::operator()(std::vector<std::shared_ptr<Value>>& x) {
+    vector<std::shared_ptr<Value>> out = x;
 
     for(int i=0; i<layers.size(); i++) {
         if(i==layers.size()-1) {
@@ -140,8 +143,8 @@ std::vector<std::shared_ptr<Value>> MLP::operator()(std::vector<std::shared_ptr<
     return out;
 }
 
-std::vector<std::shared_ptr<Value>> MLP::parameters() {
-    auto params = std::vector<std::shared_ptr<Value>>{};
+vector<std::shared_ptr<Value>> MLP::parameters() {
+    auto params = vector<std::shared_ptr<Value>>{};
     for(auto& layer: layers) {
         auto layer_params = layer.parameters();
         params.insert(params.end(), layer_params.begin(), layer_params.end());
@@ -149,9 +152,9 @@ std::vector<std::shared_ptr<Value>> MLP::parameters() {
     return params;
 }
 
-std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x) {
-    auto out = std::vector<std::shared_ptr<Value>>{};
-    auto denom = std::make_shared<Value>(0);
+vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>& x) {
+    auto out = vector<std::shared_ptr<Value>>{};
+    auto denom = make_shared<Value>(0);
     for(auto& val: x) {
         denom = denom + exp(val);
     }
@@ -162,9 +165,9 @@ std::vector<std::shared_ptr<Value>> softmax(std::vector<std::shared_ptr<Value>>&
 }
 
 void Neuron::zero_grad() {
-    for(auto& weight: w) {
-        weight -> set_grad(0);
-    }
+	for(int i=0 ; i<nin ; i++) {
+		w.get()[i] -> set_grad(0);
+	}
     b -> set_grad(0);
 }
 
@@ -186,8 +189,8 @@ void MLP::step(float lr) {
     }
 }
 
-std::shared_ptr<Value> cross_entropy(std::vector<std::shared_ptr<Value>>& x, std::vector<std::shared_ptr<Value>>& y) {
-    auto out = std::make_shared<Value>(0);
+shared_ptr<Value> cross_entropy(std::vector<std::shared_ptr<Value>>& x, std::vector<std::shared_ptr<Value>>& y) {
+    auto out = make_shared<Value>(0);
     for(int i = 0; i < x.size(); i++) {
         out = out + y[i] * log(x[i]);
     }

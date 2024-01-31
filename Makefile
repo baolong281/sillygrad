@@ -13,7 +13,7 @@ main: engine.o main.o nn.o
 	./main
 
 cuda: nn.cu engine.o nn.o
-	$(NVCC) -std=c++17 engine.o nn.o nn.cu -o main
+	$(NVCC) -w -std=c++17 engine.o nn.o nn.cu -o main
 	./main
 
 test: engine.o test.o nn.o
