@@ -23,7 +23,7 @@ class Neuron {
         shared_ptr<Value> operator()(vector<shared_ptr<Value>>& x);
         vector<shared_ptr<Value>> parameters();
         void zero_grad();
-		Neuron to_cuda();
+		Neuron* to_cuda();
 		void set_act(string* activation);
 		void set_w(shared_ptr<shared_ptr<Value>[]> w);
 		void set_b(shared_ptr<Value>* b);
@@ -52,7 +52,7 @@ class MLP {
         vector<shared_ptr<Value>> parameters();
         void zero_grad();
         void step(float lr);
-		MLP to_cuda();
+		MLP* to_cuda();
 };
 
 vector<shared_ptr<Value>> softmax(vector<shared_ptr<Value>>& x);
