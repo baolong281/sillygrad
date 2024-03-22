@@ -8,9 +8,15 @@ else
     CFLAGS += -lcurl
 endif
 
-main: engine.o main.o nn.o
-	$(CC) $(CFLAGS) nn.o main.o engine.o -o main 
+main: tensor.o main.o
+	$(CC) $(CFLAGS) main.o tensor.o -o main 
 	./main
+
+tensor.o: tensor.cpp tensor.h
+	$(CC) $(CFLAGS) -c tensor.cpp 
+
+main.o: main.cpp
+	$(CC) $(CFLAGS) -c main.cpp 
 
 cuda: nn.cu engine.o nn.o
 	$(NVCC) -w -std=c++17 engine.o nn.o nn.cu -o main
@@ -28,9 +34,6 @@ mnist.o: mnist.cpp
 
 test.o: ./test/test.cpp
 	$(CC) $(CFLAGS) -c -lgtest ./test/test.cpp
-
-main.o: ./test/main.cpp
-	$(CC) $(CFLAGS) -c ./test/main.cpp
 
 engine.o: engine.cpp engine.h
 	$(CC) $(CFLAGS) -c engine.cpp 

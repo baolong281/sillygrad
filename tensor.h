@@ -1,61 +1,76 @@
 #ifndef TENSOR_H
 #define TENSOR_H
 
+#include <cstddef>
 #include <functional>
 #include <set>
 #include <vector>
+#include <string>
+
 using namespace std;
 
-enum Device {
-	CPU,
-	GPU
+typedef vector<vector<float>> Mat;
+
+class Tensor;
+
+class Operations {
+	public:
+		virtual Mat* mul(Mat* A, Mat* B) = 0;
+		virtual Mat* scalar_mul(Mat* A, float c) = 0;
+		virtual Mat* add(Mat* A, Mat* B) = 0;
+		virtual Mat* subtract(Mat* A, Mat* B) = 0;
+		virtual Mat* negate(Mat* A) = 0;
+		virtual Mat* pow(Mat* A, float exp) = 0;
+		virtual Mat* move_data(Mat* data) = 0;
+		virtual Mat* transpose(Mat* A) = 0;
+		virtual ~Operations() = default;
 };
 
 class Tensor {
 	private:
-		Device device;
-		vector<vector<float>> data;
+		string device;
 		function<void()> _backward;
 		set<Tensor*> prev;
-		vector<int> shape;
-
+		vector<size_t> shape;
+		Operations* op_type;
+		bool requires_grad;
 	public:
-		Tensor* to(Device device);
-		Tensor mul(const Tensor& other);
-		Tensor scalar_mul(float other);
-		Tensor operator+(const Tensor& other);
-		Tensor operator-(const Tensor& other);
+		operator std::string() const;
+		Tensor(vector<vector<float>>* data, string device="cpu", bool requires_grad=true);
+		Tensor operator+(Tensor& other);
+		Tensor operator-(Tensor& other);
 		Tensor operator-();
 		Tensor pow(float exp);
+		Tensor* to(string device);
+		void print_data() const;
+		void print_grad() const;
+		vector<size_t> const size() { return shape; }
+		Mat* data;
+		Mat* grad;
 
 		// add more operations later
 };
 
-class Operation {
-	virtual Tensor mul(const Tensor& A, const Tensor& B);
-	virtual Tensor scalar_mul(const Tensor& A, float other);
-	virtual Tensor add(const Tensor& A, const Tensor& B);
-	virtual Tensor subtract(const Tensor& A, const Tensor& B);
-	virtual Tensor negate(const Tensor& A);
-	virtual Tensor pow(float exp);
+class CPUOperation : public Operations {
+	Mat* mul(Mat* A, Mat* B) override;
+	Mat* scalar_mul(Mat* A, float c) override;
+	Mat* add(Mat* A, Mat* B) override;
+	Mat* subtract(Mat* A, Mat* B) override;
+	Mat* negate(Mat* A) override;
+	Mat* pow(Mat* A, float exp) override;
+	Mat* move_data(Mat* data) override;
+	Mat* transpose(Mat* data) override;
 };
 
-class CPUOperation : public Operation {
-	Tensor mul(const Tensor& A, const Tensor& B);
-	Tensor scalar_mul(const Tensor& A, float other);
-	Tensor add(const Tensor& A, const Tensor& B);
-	Tensor subtract(const Tensor& A, const Tensor& B);
-	Tensor negate(const Tensor& A);
-	Tensor pow(float exp);
-};
-
-class GPUOperation : public Operation {
-	Tensor mul(const Tensor& A, const Tensor& B);
-	Tensor scalar_mul(const Tensor& A, float other);
-	Tensor add(const Tensor& A, const Tensor& B);
-	Tensor subtract(const Tensor& A, const Tensor& B);
-	Tensor negate(const Tensor& A);
-	Tensor pow(float exp);
+class GPUOperation : public Operations {
+	Mat* mul(Mat* A, Mat* B) override;
+	Mat* scalar_mul(Mat* A, float c) override;
+	Mat* add(Mat* A, Mat* B) override;
+	Mat* subtract(Mat* A, Mat* B) override;
+	Mat* negate(Mat* A) override;
+	Mat* pow(Mat* A, float exp) override;
+	Mat* move_data(Mat* data) override;
+	Mat* transpose(Mat* data) override;
 };
 
 #endif

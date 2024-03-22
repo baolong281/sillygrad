@@ -13,21 +13,21 @@ using namespace std;
 class Neuron {
     private:
         // vector<shared_ptr<Value>> w;
-        shared_ptr<Value> b;
-		shared_ptr<shared_ptr<Value>[]> w;
-        string _activation;
-		int nin;
+	shared_ptr<Value> b;
+	vector<shared_ptr<Value>> w;
+	string _activation;
+	int nin;
 
-    public:
-        Neuron(int nin, string activation={});
-        shared_ptr<Value> operator()(vector<shared_ptr<Value>>& x);
-        vector<shared_ptr<Value>> parameters();
-        void zero_grad();
-		Neuron* to_cuda();
-		void set_act(string* activation);
-		void set_w(shared_ptr<shared_ptr<Value>[]> w);
-		void set_b(shared_ptr<Value>* b);
-		string get_activation();
+public:
+	Neuron(int nin, string activation={});
+	shared_ptr<Value> operator()(vector<shared_ptr<Value>>& x);
+	vector<shared_ptr<Value>> parameters();
+	void zero_grad();
+	Neuron* to_cuda();
+	void set_act(string* activation);
+	void set_w(vector<shared_ptr<Value>> w);
+	void set_b(shared_ptr<Value>* b);
+	string get_activation();
 		int get_nin();
 };
 
