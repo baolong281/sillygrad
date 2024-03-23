@@ -1,6 +1,6 @@
 # sillygrad
 
-torch-like deep learning framework written in c++ and accelerated with cuda based off of [micrograd](https://github.com/karpathy/micrograd) and
+torch-like deep learning framework written in c++ and aCXXelerated with cuda based off of [micrograd](https://github.com/karpathy/micrograd) and
 [c++ micrograd](https://github.com/10-zin/cpp-micrograd).
 
 ### requirements

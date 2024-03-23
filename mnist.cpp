@@ -62,7 +62,7 @@ void download_and_unzip(const std::string& url, const std::string &out_path) {
         if(res != CURLE_OK) {
             std::cout << "Failed to download " << out_path << std::endl;
         } else {
-            std::cout << "Successfully downloaded into " << out_path << std::endl;
+            std::cout << "SuCXXessfully downloaded into " << out_path << std::endl;
         }
 
         /* always cleanup */
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
 			auto label = (*labels)[i];
 			auto [loss, y] = training_step(model, x, label);
 			if(get_prediction(y) == label) correct++;
-			std:: cout << "Accuracy: " << (float)correct/(i+1) << std::endl;
+			std:: cout << "ACXXuracy: " << (float)correct/(i+1) << std::endl;
 			std::cout << "Step: " << step << " Loss: " << loss-> get_data() << std::endl;
             step++;
         }
