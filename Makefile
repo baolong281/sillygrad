@@ -1,10 +1,14 @@
-CXX=g++
+CXX=clang++
 CXXFLAGS=-g -std=c++17
 NVCC=nvcc
 
-main: tensor.o main.o ops.o
-	$(CXX) $(CXXFLAGS) main.o tensor.o ops.o -o main 
+
+main: tensor.o main.o ops.o kernels.so
+	$(CXX) $(CXXFLAGS) main.o tensor.o ./kernels.so ops.o -o main 
 	./main
+
+kernels.so: ops.cu tensor.h
+	$(NVCC) -shared -w -std=c++17 ops.cu -Xcompiler -fPIC -o kernels.so
 
 tensor.o: tensor.cpp tensor.h
 	$(CXX) $(CXXFLAGS) -c tensor.cpp 

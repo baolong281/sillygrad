@@ -38,6 +38,8 @@ private:
   bool requires_grad;
 
 public:
+  Mat *data;
+  Mat *grad;
   Tensor(vector<vector<float>> *data, string device = "cpu",
          bool requires_grad = true);
   ~Tensor() {
@@ -47,50 +49,45 @@ public:
   }
   Tensor operator+(Tensor &other);
   Tensor operator-(Tensor &other);
+  Tensor operator-();
   // scalar mul
-  template <typename T, typename = typename std::enable_if<
-                            std::is_arithmetic<T>::value, T>::type>
-  Tensor operator*(T c);
-  template <typename T, typename = typename std::enable_if<
-                            std::is_arithmetic<T>::value, T>::type>
-  friend Tensor operator*(T c, Tensor &A) {
+  Tensor operator*(float c);
+
+  friend Tensor operator*(float c, Tensor &A) {
     return A * c;
   }
 
-  Tensor operator-();
   Tensor pow(float exp);
   Tensor *to(string device);
-  vector<size_t> const size() { return shape; }
-  Mat *data;
-  Mat *grad;
-  operator std::string() const;
+
   void print_data() const;
   void print_grad() const;
+  vector<size_t> const size() { return shape; }
   // add more operations later
 };
 
 class CPUOperation : public Operations {
-  Mat *mul(Mat *A, Mat *B) override;
-  Mat *scalar_mul(Mat *A, float c) override;
-  Mat *add(Mat *A, Mat *B) override;
-  Mat *subtract(Mat *A, Mat *B) override;
-  Mat *negate(Mat *A) override;
-  Mat *pow(Mat *A, float exp) override;
-  Mat *move_data(Mat *data) override;
-  Mat *transpose(Mat *data) override;
-  void free_memory(Mat *data) override;
+	Mat *mul(Mat *A, Mat *B) override;
+  	Mat *scalar_mul(Mat *A, float c) override;
+  	Mat *add(Mat *A, Mat *B) override;
+  	Mat *subtract(Mat *A, Mat *B) override;
+  	Mat *negate(Mat *A) override;
+  	Mat *pow(Mat *A, float exp) override;
+  	Mat *move_data(Mat *data) override;
+  	Mat *transpose(Mat *data) override;
+  	void free_memory(Mat *data) override;
 };
 
 class GPUOperation : public Operations {
-  Mat *mul(Mat *A, Mat *B) override;
-  Mat *scalar_mul(Mat *A, float c) override;
-  Mat *add(Mat *A, Mat *B) override;
-  Mat *subtract(Mat *A, Mat *B) override;
-  Mat *negate(Mat *A) override;
-  Mat *pow(Mat *A, float exp) override;
-  Mat *move_data(Mat *data) override;
-  Mat *transpose(Mat *data) override;
-  void free_memory(Mat *data) override;
+  	Mat *mul(Mat *A, Mat *B) override;
+  	Mat *scalar_mul(Mat *A, float c) override;
+  	Mat *add(Mat *A, Mat *B) override;
+  	Mat *subtract(Mat *A, Mat *B) override;
+  	Mat *negate(Mat *A) override;
+  	Mat *pow(Mat *A, float exp) override;
+  	Mat *transpose(Mat *data) override;
+  	Mat *move_data(Mat *data) override;
+  	void free_memory(Mat *data) override;
 };
 
 #endif

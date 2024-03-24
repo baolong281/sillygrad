@@ -24,7 +24,7 @@ Tensor::Tensor(vector<vector<float>> *data, string device, bool requires_grad) {
     this->data = data;
     this->grad = grad;
   } else {
-    // this->op_type = GPUOperation();
+    this->op_type = new GPUOperation();
     this->data = op_type->move_data(data);
     this->grad = op_type->move_data(grad);
   }
@@ -42,15 +42,15 @@ Tensor *Tensor::to(string device) {
   return this;
 }
 
-// template <typename T> Tensor Tensor::operator*(T c) {
-//   auto out = Tensor(op_type->scalar_mul(data, c));
-//   // out . _backward = [this, out, c] {
-//   // 	this -> prev.insert(&out);
-//   // 	out . _backward();
-//   // };
-//   out._backward = [this, out, c] { this->grad += c * out.grad; };
-//   return out;
-// }
+Tensor Tensor::operator*(float c) {
+	auto out = Tensor(op_type->scalar_mul(data, c));
+	// out . _backward = [this, out, c] {
+	// 	this -> prev.insert(&out);
+	// 	out . _backward();
+	// };
+	// out._backward = [this, out, c] { this->grad += c * out.grad; };
+	return out;
+}
 
 Tensor Tensor::operator+(Tensor &other) {
   auto prev = set<Tensor *>{this, &other};
@@ -67,18 +67,6 @@ Tensor Tensor::operator+(Tensor &other) {
 //     other->grad += 1.0 * out.grad;
 //   };
 
-  return out;
-}
-
-Tensor::operator std::string() const {
-  auto out = string("Tensor(");
-  for (auto i = 0; i < shape.size(); i++) {
-    out += to_string(shape[i]);
-    if (i != shape.size() - 1) {
-      out += ", ";
-    }
-  }
-  out += ")";
   return out;
 }
 

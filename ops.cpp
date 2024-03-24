@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include <cmath>
 #include <vector>
 
 void CPUOperation::free_memory(Mat* data) {
