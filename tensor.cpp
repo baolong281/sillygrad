@@ -181,6 +181,11 @@ void print_tensor(vector<float>* data, vector<std::size_t> shape, string device)
   cout << out << endl;
 }
 
-void Tensor::print_data() const { print_tensor(data -> data, data -> shape, device); }
+void Tensor::print_data() const { 
+	op_type -> print_buffer(data);
+}
 
-void Tensor::print_grad() const { print_tensor(data -> data, data->shape, device); }
+void Tensor::print_grad() const { 
+	op_type -> print_buffer(grad);
+}
+

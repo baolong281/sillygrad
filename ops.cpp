@@ -1,6 +1,7 @@
 #include "tensor.h"
 #include <cmath>
 #include <vector>
+#include <iostream>
 
 // todo : add support for broadcasting
 // todo : error handling
@@ -104,4 +105,26 @@ Buffer* CPUOperation::transpose(Buffer* A) {
 	}
 
 	return new Buffer(out, "cpu", {shape[1], shape[0]});
+}
+
+void CPUOperation::print_buffer(Buffer* buff) {
+  auto out = string("Tensor(");
+  for (size_t i = 0; i < buff -> shape.at(0); i++) {
+	if (i == 0) {
+	  out += "[";
+	} else {
+	  out += "       [";
+	}
+	for (int j = 0; j < buff -> shape[1]; j++) {
+	  out += to_string(buff -> data->at(i * buff -> shape[1] + j));
+	  if (j != buff -> shape[1] - 1) {
+		out += ", ";
+	  }
+	}
+	out += "]";
+	if (i != buff -> shape[0] - 1) {
+	  out += ",\n";
+	}
+  }
+  cout << out << endl;
 }

@@ -37,6 +37,7 @@ public:
   virtual vector<float>* move_data(vector<float>* data) = 0;
   virtual Buffer* transpose(Buffer* A) = 0;
   virtual void free_memory(vector<float>* data) = 0;
+  virtual void print_buffer(Buffer* data) = 0;
   virtual ~Operations() = default;
 };
 
@@ -80,22 +81,6 @@ public:
 
 class CPUOperation : public Operations {
 	public:
-	Buffer* mul(Buffer* A, Buffer* B) override;
-  	Buffer* scalar_mul(Buffer* A, float c) override;
-  	Buffer* add(Buffer* A, Buffer* B) override;
-  	Buffer* subtract(Buffer* A, Buffer* B) override;
-  	Buffer* negate(Buffer* A) override;
-  	Buffer* pow(Buffer* A, float exp) override;
-  	Buffer* transpose(Buffer* data) override;
-  	vector<float>* move_data(vector<float>* data) override;
-  	void free_memory(vector<float>* data) override;
-};
-
-class GPUOperation : public Operations {
-	public:
-		vector<float>* move_data(vector<float>* data) override;
-		void free_memory(vector<float>* data) override;
-	private:
 		Buffer* mul(Buffer* A, Buffer* B) override;
 		Buffer* scalar_mul(Buffer* A, float c) override;
 		Buffer* add(Buffer* A, Buffer* B) override;
@@ -103,6 +88,23 @@ class GPUOperation : public Operations {
 		Buffer* negate(Buffer* A) override;
 		Buffer* pow(Buffer* A, float exp) override;
 		Buffer* transpose(Buffer* data) override;
+		vector<float>* move_data(vector<float>* data) override;
+		void free_memory(vector<float>* data) override;
+		void print_buffer(Buffer* data) override;
+};
+
+class GPUOperation : public Operations {
+	public:
+		vector<float>* move_data(vector<float>* data) override;
+		void free_memory(vector<float>* data) override;
+		Buffer* mul(Buffer* A, Buffer* B) override;
+		Buffer* scalar_mul(Buffer* A, float c) override;
+		Buffer* add(Buffer* A, Buffer* B) override;
+		Buffer* subtract(Buffer* A, Buffer* B) override;
+		Buffer* negate(Buffer* A) override;
+		Buffer* pow(Buffer* A, float exp) override;
+		Buffer* transpose(Buffer* data) override;
+		void print_buffer(Buffer* data) override;
 };
 
 #endif
