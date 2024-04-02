@@ -2,13 +2,25 @@ CXX=clang++
 CXXFLAGS=-g -std=c++17
 NVCC=nvcc
 
+# Set the default value for the CUDA flag
+CUDA_ENABLED ?= 0
 
-main: tensor.o main.o ops.o kernels.so
-	$(CXX) $(CXXFLAGS) main.o tensor.o ./kernels.so ops.o -o main 
-	./main
+# Set the NVCC and CUDA flags based on the CUDA_ENABLED value
+ifeq ($(CUDA_ENABLED),1)
+    NVCC = nvcc
+    CUDA_FLAGS = -Xcompiler -fPIC
+    CUDA_LIB = kernels.so
+else
+    NVCC =
+    CUDA_FLAGS =
+    CUDA_LIB =
+endif
+
+main: tensor.o main.o ops.o $(CUDA_LIB)
+	$(CXX) $(CXXFLAGS) main.o tensor.o $(CUDA_LIB) ops.o -o main
 
 kernels.so: ops.cu tensor.h
-	$(NVCC) -shared -w -std=c++17 ops.cu -Xcompiler -fPIC -o kernels.so
+	$(NVCC) -shared -w -std=c++17 $(CUDA_FLAGS) ops.cu -o kernels.so
 
 tensor.o: tensor.cpp tensor.h
 	$(CXX) $(CXXFLAGS) -c tensor.cpp 

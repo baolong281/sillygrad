@@ -2,98 +2,106 @@
 #include <cmath>
 #include <vector>
 
-void CPUOperation::free_memory(Mat* data) {
+// todo : add support for broadcasting
+// todo : error handling
+
+void CPUOperation::free_memory(vector<float>* data) {
     delete data;
 }
 
-Mat* CPUOperation::move_data(Mat* data) {
-	auto shape = vector<size_t>{data->size(), data->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = data->at(i)[j];
-		}
-	}
-	return out;
+vector<float>* CPUOperation::move_data(vector<float>* data) {
+	auto new_data = new vector<float>(*data);
+	return new_data;
 }
 
-Mat* CPUOperation::add(Mat* A, Mat* B) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = A->at(i)[j] + B->at(i)[j];
-		}
+Buffer* CPUOperation::add(Buffer* A, Buffer* B) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
+
+	for (int i = 0; i < size; i++) {
+		(*out)[i] = (*A->data)[i] + (*B->data)[i];
 	}
-	return out;
+
+	return new Buffer(out, "cpu", shape);
 }
 
-Mat* CPUOperation::negate(Mat* A) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = -A->at(i)[j];
-		}
+Buffer* CPUOperation::negate(Buffer* A) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
+
+	for (int i = 0; i < size; i++) {
+		(*out)[i] = -(*A->data)[i];
 	}
-	return out;
+
+	return new Buffer(out, "cpu", shape);
 }
 
-Mat* CPUOperation::subtract(Mat* A, Mat* B) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = A->at(i)[j] - B->at(i)[j];
-		}
+Buffer* CPUOperation::subtract(Buffer* A, Buffer* B) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
+
+	for (int i = 0; i < size; i++) {
+		(*out)[i] = (*A->data)[i] - (*B->data)[i];
 	}
-	return out;
+
+	return new Buffer(out, "cpu", shape);
 }
 
-Mat* CPUOperation::scalar_mul(Mat* A, float c) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = A->at(i)[j] * c;
-		}
+Buffer* CPUOperation::scalar_mul(Buffer* A, float c) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
+
+	for (int i = 0; i < size; i++) {
+		(*out)[i] = c * (*A->data)[i];
 	}
-	return out;
+
+	return new Buffer(out, "cpu", shape);
 }
 
-Mat* CPUOperation::mul(Mat* A, Mat* B) {
-	auto shape = vector<size_t>{A->size(), B->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = 0;
-			for(auto k = 0; k < A->at(0).size(); k++) {
-				(*out)[i][j] += A->at(i)[k] * B->at(k)[j];
+//matmul 
+Buffer* CPUOperation::mul(Buffer* A, Buffer* B) {
+	auto shape_A = A -> shape;
+	auto shape_B = B -> shape;
+	auto out = new vector<float>(shape_A[0] * shape_B[1], 0);
+
+	for (int i = 0; i < shape_A[0]; i++) {
+		for (int j = 0; j < shape_B[1]; j++) {
+			for (int k = 0; k < shape_A[1]; k++) {
+				(*out)[i * shape_B[1] + j] += (*A->data)[i * shape_A[1] + k] * (*B->data)[k * shape_B[1] + j];
 			}
 		}
 	}
-	return out;
+
+	return new Buffer(out, "cpu", {shape_A[0], shape_B[1]});
 }
 
-Mat* CPUOperation::pow(Mat* A, float exp) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[0], vector<float>(shape[1]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[i][j] = std::pow(A->at(i)[j], exp);
-		}
+Buffer* CPUOperation::pow(Buffer* A, float exp) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
+
+	for (int i = 0; i < size; i++) {
+		auto val = std::pow((*A->data)[i], exp);
+		(*out)[i] = val;
 	}
-	return out;
+
+	return new Buffer(out, "cpu", shape);
 }
 
+Buffer* CPUOperation::transpose(Buffer* A) {
+	auto shape = A -> shape;
+	auto size = shape[0] * shape[1];
+	auto out = new vector<float>(size);
 
-Mat* CPUOperation::transpose(Mat* A) {
-	auto shape = vector<size_t>{A->size(), A->at(0).size()};
-	auto out = new vector<vector<float>>(shape[1], vector<float>(shape[0]));
-	for(auto i = 0; i < shape[0]; i++) {
-		for(auto j = 0; j < shape[1]; j++) {
-			(*out)[j][i] = A->at(i)[j];
+	for (int i = 0; i < shape[0]; i++) {
+		for (int j = 0; j < shape[1]; j++) {
+			(*out)[j * shape[0] + i] = (*A->data)[i * shape[1] + j];
 		}
 	}
-	return out;
+
+	return new Buffer(out, "cpu", {shape[1], shape[0]});
 }
