@@ -1,28 +1,18 @@
 # sillygrad
 
-torch-like deep learning framework written in c++ and aCXXelerated with cuda based off of [micrograd](https://github.com/karpathy/micrograd) and
+torch-like tensor library written in c++ with support for acceleration \
+inspired by [micrograd](https://github.com/karpathy/micrograd) and 
 [c++ micrograd](https://github.com/10-zin/cpp-micrograd).
 
-### requirements
-
-- libcurl
-- gzip
-
-### running mnist
-
+## running main
 ```
-make mnist
-./mnist --cuda
-```
+// compile with cuda
+make main --CUDA_ENABLED=1 
+``` 
 
-to build and run mnist with cuda
-
-### running tests
-
-make sure to have gtest installed
-
-```
-make test
-```
-
-https://curl.se/docs/faq.html#Link_errors_when_building_libcur
+# todo:
+- rewriting to support tensors
+- tensor broadcasting and shapes
+- writing cuda kernels
+- fixing memory leaks
+- write nn module 
