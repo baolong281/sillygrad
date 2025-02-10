@@ -1,65 +1,53 @@
 #include "tensor.h"
-#include <cstddef>
 #include <cuda_runtime.h>
-#include <cuda_runtime_api.h>
-#include <iostream>
-#include <vector>
 
-using namespace std;
+// Helper function to check CUDA errors
+#define CHECK_CUDA(call)                                                       \
+  do {                                                                         \
+    cudaError_t err = call;                                                    \
+    if (err != cudaSuccess) {                                                  \
+      std::cerr << "CUDA error in " << __FILE__ << ":" << __LINE__ << ": "     \
+                << cudaGetErrorString(err) << std::endl;                       \
+      exit(1);                                                                 \
+    }                                                                          \
+  } while (0)
 
-extern "C" {
-void GPUOperation::free_memory(vector<float> *data) {
-    if (data != nullptr) {
-        cudaFree(data);
-        data = nullptr;
+// CUDA kernel for element-wise addition
+__global__ void add_kernel(float *A, float *B, float *C, int size) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  if (idx < size) {
+    C[idx] = A[idx] + B[idx];
+  }
+}
+
+// Implementation of GPU Operations
+float* GPUOperation::move_data(float* cpu_data, size_t size) {
+    float* gpu_data;
+    CHECK_CUDA(cudaMalloc(&gpu_data, size * sizeof(float)));
+    CHECK_CUDA(cudaMemcpy(gpu_data, cpu_data, size * sizeof(float), cudaMemcpyHostToDevice));
+    return gpu_data;
+}
+
+void GPUOperation::free_memory(float* gpu_data) {
+    if (gpu_data) {
+        CHECK_CUDA(cudaFree(gpu_data));
     }
 }
 
-vector<float> *GPUOperation::move_data(vector<float> *data) {
-    vector<float> *out = nullptr;
-    if (data != nullptr) {
-        auto size = data->size() * sizeof(float);
-        cudaMemcpy(out, data, size, cudaMemcpyHostToDevice);
-    }
+Buffer* GPUOperation::add(Buffer* A, Buffer* B) {
+    size_t size = A->shape[0] * A->shape[1];
+    float* output;
+    CHECK_CUDA(cudaMalloc(&output, size * sizeof(float)));
 
-    return out;
-}
+    // Configure CUDA kernel
+    int block_size = 256;
+    int num_blocks = (size + block_size - 1) / block_size;
 
-void GPUOperation::print_buffer(Buffer *buff) {
-    auto out = string("Tensor(");
-    for (size_t i = 0; i < buff->shape.at(0); i++) {
-        if (i == 0) {
-            out += "[";
-        } else {
-            out += "       [";
-        }
-        for (int j = 0; j < buff->shape[1]; j++) {
-            out += to_string(buff->data->at(i * buff->shape[1] + j));
-            if (j != buff->shape[1] - 1) {
-                out += ", ";
-            }
-        }
-        out += "]";
-        if (i != buff->shape[0] - 1) {
-            out += ",\n";
-        }
-    }
-    cout << out << endl;
-}
+    // Launch kernel
+    add_kernel<<<num_blocks, block_size>>>(A->data, B->data, output, size);
 
-Buffer *GPUOperation::mul(Buffer *A, Buffer *B) { return nullptr; }
+    CHECK_CUDA(cudaGetLastError());
+    CHECK_CUDA(cudaDeviceSynchronize());
 
-Buffer *GPUOperation::scalar_mul(Buffer *A, float c) { return nullptr; }
-
-Buffer *GPUOperation::add(Buffer *A, Buffer *B) { return nullptr; }
-
-Buffer *GPUOperation::subtract(Buffer *A, Buffer *B) { return nullptr; }
-
-Buffer *GPUOperation::negate(Buffer *A) { return nullptr; }
-
-Buffer *GPUOperation::pow(Buffer *A, float exp) { return nullptr; }
-
-Buffer *GPUOperation::transpose(Buffer *data) { return nullptr; }
-
-void BANANA() { cout << "BANANA" << endl; }
+    return new Buffer(output, "gpu", A->shape);
 }
